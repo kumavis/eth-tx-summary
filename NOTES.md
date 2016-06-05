@@ -1,3 +1,4 @@
+// potential summary event schema
 
 {
   type: 'call',

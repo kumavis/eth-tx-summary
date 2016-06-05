@@ -1,11 +1,14 @@
 const async = require('async')
 const xhr = process.browser ? require('xhr') : require('request')
-const EthQuery = require('eth-store/query')
-const treeify = require('treeify').asTree
 const generateTxSummary = require('./index.js')
 
 const RPC_ENDPOINT = 'https://mainnet.infura.io/'
-const targetTx = '0x44ddb2dc10f0354ba87814a17e58765b7bf1a7d47baa2fac9cf5b72f462c66cd'
+// long tx run
+// const targetTx = '0x44ddb2dc10f0354ba87814a17e58765b7bf1a7d47baa2fac9cf5b72f462c66cd'
+// lots of setup + long tx run
+// const targetTx = '0x9f004c8acac4457d985154a1004e0b43c9c8010697abfc3796de84ca81b93d05'
+// invalid jump
+const targetTx = '0x026084424ed68542b611f8deffb2563bb527600abf63cee61d1cd8850f1b94fe'
 
 var provider = {
   sendAsync: function(payload, cb){
@@ -43,45 +46,12 @@ var provider = {
   }
 }
 
-var startBlock = 0
-var endBlock = 1622266
-
-var query = new EthQuery(provider)
-
 generateTxSummary(provider, targetTx, function(err, summary){
   if (err) throw err
   // console.log(treeify(summary, true))
-  summary.codePath.forEach(function(step){
-    console.log(`${step.pc}: ${step.opcode.name}`)
+  summary.codePath.forEach(function(step, index){
+    var stepNumber = index+1
+    console.log(`[${stepNumber}] ${step.pc}: ${step.opcode.name}`)
   })
+  console.log(summary.results)
 })
-// async.parallel({
-//   earliest: query.getNonce.bind(query, targetAccount, startBlock),
-//   latest:   query.getNonce.bind(query, targetAccount, endBlock),
-// }, function(err, results){
-//   if (err) throw err
-  
-//   var totalTxCount = hexToNumber(results.latest) - hexToNumber(results.earliest)
-//   var foundTxCount = 0
-  
-//   console.log(`searching for all txs for ${targetAccount}`)
-//   findAllTxsInRange(provider, targetAccount, startBlock, endBlock, onTx, onComplete)
-
-//   function onTx(txData){
-//     foundTxCount++
-//     console.log(`found: ${foundTxCount}/${totalTxCount} = ${100*foundTxCount/totalTxCount}%`)
-//   }
-
-//   function onComplete(err, results){
-//     if (err) throw err
-//     console.log('results:', results.map(tx=>tx.hash))
-//   }
-
-// })
-
-
-// // util
-
-// function hexToNumber(hexString){
-//   return parseInt(hexString, 16)
-// }
