@@ -1,0 +1,20 @@
+{
+  "name": "eth-tx-summary",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.0.0-rc.5",
+    "eth-store": "^2.2.0",
+    "ethereumjs-block": "^1.2.2",
+    "ethereumjs-tx": "^1.1.1",
+    "ethereumjs-util": "^4.4.1",
+    "ethereumjs-vm": "github:ethereumjs/ethereumjs-vm#hooked",
+    "treeify": "^1.0.1"
+  }
+}
