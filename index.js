@@ -1,5 +1,6 @@
 const EthQuery = require('eth-store/query')
 const async = require('async')
+const clone = require('clone')
 const createRpcVm = require('ethereumjs-vm/lib/hooked').fromWeb3Provider
 const materializeBlocks = require('./materialize-blocks')
 
@@ -32,6 +33,7 @@ function generateTxSummary(provider, txHash, cb) {
       if (err) return cb(err)
       txData = _txData
       // load block
+      // console.log('targetTx:',txData)
       query.getBlockByHash(txData.blockHash, function(err, _blockData){
         if (err) return cb(err)
         blockData = _blockData
@@ -68,7 +70,14 @@ function generateTxSummary(provider, txHash, cb) {
   function runTargetTx(cb){
     var codePath = []
     vm.on('step', function(step){
-      codePath.push(step)
+      var cleanStep = clone({
+        opcode: step.opcode,
+        stack: step.stack,
+        address: step.address,
+        pc: step.pc,
+        depth: step.depth,
+      })
+      codePath.push(cleanStep)
     })
 
     vm.runTx({
