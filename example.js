@@ -1,9 +1,12 @@
 const async = require('async')
 const xhr = process.browser ? require('xhr') : require('request')
-const generateTxSummary = require('./index.js')
+const onStreamEnd = require('end-of-stream')
+const generateTxSummary = require('./index.js').generateTxSummary
+const createVmTraceStream = require('./index.js').createVmTraceStream
 const ZeroClient = require('web3-provider-engine/zero')
 
 const RPC_ENDPOINT = 'https://mainnet.infura.io/'
+// const RPC_ENDPOINT = 'http://localhost:8545'
 // long tx run
 // const targetTx = '0x44ddb2dc10f0354ba87814a17e58765b7bf1a7d47baa2fac9cf5b72f462c66cd'
 // lots of setup + long tx run
@@ -15,17 +18,23 @@ const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c47994
 
 var provider = ZeroClient({ rpcUrl: RPC_ENDPOINT })
 
-generateTxSummary(provider, targetTx, function(err, summary){
-  if (err) throw err
-  // console.log(treeify(summary, true))
-  summary.codePath.forEach(function(step, index){
-    var stepNumber = index+1
+var stream = createVmTraceStream(provider, targetTx)
+stream.on('data', data => {})
+// stream.on('data', data => console.log(data))
+stream.on('error', err => {throw err})
+onStreamEnd(stream, ()=> provider.stop())
+
+// generateTxSummary(provider, targetTx, function(err, summary){
+//   if (err) throw err
+//   // console.log(treeify(summary, true))
+//   summary.codePath.forEach(function(step, index){
+//     var stepNumber = index+1
     
-    if (step.opcode.name === 'CALL') {
-      console.log(`[${stepNumber}] ${step.pc}: ${step.opcode.name}`)
-      console.log(JSON.stringify(step))
-    }
-  })
-  console.log(summary.results)
-  provider.stop()
-})
+//     if (step.opcode.name === 'CALL') {
+//       console.log(`[${stepNumber}] ${step.pc}: ${step.opcode.name}`)
+//       console.log(JSON.stringify(step))
+//     }
+//   })
+//   console.log(summary.results)
+//   provider.stop()
+// })

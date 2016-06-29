@@ -1,6 +1,6 @@
 {
   "name": "eth-tx-summary",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^2.0.0-rc.5",
     "clone": "^1.0.2",
+    "end-of-stream": "^1.1.0",
     "eth-store": "^2.2.0",
     "ethereumjs-block": "^1.2.2",
     "ethereumjs-tx": "^1.1.1",
