@@ -30,7 +30,7 @@ function generateCallTrace(txHash, provider, cb){
   
   var callTrace = { accounts: {}, calls: [], stackFrames: [] }
   
-  var traceStream = createVmTraceStream(provider, targetTx)
+  var traceStream = createVmTraceStream(provider, txHash)
   endOfStream(traceStream, function(err){
     provider.stop()
     if (err) return cb(err)
