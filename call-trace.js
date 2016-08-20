@@ -4,15 +4,18 @@ const ethUtil = require('ethereumjs-util')
 const createVmTraceStream = require('./index.js').createVmTraceStream
 const endOfStream = require('end-of-stream')
 
-const RPC_ENDPOINT = 'https://mainnet.infura.io/'
-// const RPC_ENDPOINT = 'http://localhost:8545/'
+// const RPC_ENDPOINT = 'https://mainnet.infura.io/'
+const RPC_ENDPOINT = 'http://localhost:8545/'
 
 // simple tx
 // const targetTx = '0x27a1aacb510a092fe5accace80ff2c0612ba24b415c9d6c398da6bf81db9e576'
 // DAO getting ripped
-const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
+// const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
 // deploying a split proposal?
 // 0xe9ebfecc2fa10100db51a4408d18193b3ac504584b51a4e55bdef1318f0a30f9
+// local tx
+// const targetTx = '0x6406ef867412a9dd8f79b5c350cf5ec981ba83d6de3e5fc42b0f57f4c8473fa9'
+const targetTx = '0x58be5f96253365a73f8b74aee5e58b98dedbd9a0b57953eac1968c7bd98e0768'
 
 var provider = ZeroClient({ rpcUrl: RPC_ENDPOINT })
 

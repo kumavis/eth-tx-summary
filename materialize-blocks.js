@@ -31,9 +31,7 @@ function materializeBlock(blockParams, uncles){
   }
 
   block.transactions = (blockParams.transactions || []).map(function(txParams){
-    // hot fix for https://github.com/ethereumjs/ethereumjs-util/issues/40
-    txParams.gasLimit = (txParams.gasLimit === undefined)? txParams.gas : txParams.gasLimit
-    txParams.data = (txParams.data === undefined)? txParams.input : txParams.data
+    normalizeTxParams(txParams)
     var tx = new Transaction(txParams)
     // override from address
     tx._from = ethUtil.toBuffer(txParams.from)
@@ -46,4 +44,12 @@ function materializeBlock(blockParams, uncles){
   })
 
   return block
+}
+
+function normalizeTxParams(txParams){
+  // hot fix for https://github.com/ethereumjs/ethereumjs-util/issues/40
+  txParams.gasLimit = (txParams.gasLimit === undefined)? txParams.gas : txParams.gasLimit
+  txParams.data = (txParams.data === undefined)? txParams.input : txParams.data
+  // strict byte length checking
+  txParams.to = ethUtil.setLengthLeft(ethUtil.toBuffer(txParams.to), 20)
 }
