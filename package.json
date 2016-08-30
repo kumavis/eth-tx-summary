@@ -1,7 +1,7 @@
 {
   "name": "eth-tx-summary",
   "version": "2.1.2",
-  "description": "",
+  "description": "replay a historical tx using a web3 provider as a data source",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,5 +20,17 @@
     "ethereumjs-vm": "github:ethereumjs/ethereumjs-vm#hooked",
     "treeify": "^1.0.1",
     "web3-provider-engine": "^7.8.1"
-  }
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kumavis/eth-tx-summary.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kumavis/eth-tx-summary/issues"
+  },
+  "homepage": "https://github.com/kumavis/eth-tx-summary#readme"
 }
