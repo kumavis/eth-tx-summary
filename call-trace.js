@@ -28,7 +28,7 @@ module.exports = generateCallTrace
 
 function generateCallTrace(txHash, provider, cb){
   
-  var callTrace = { accounts: {}, calls: [], stackFrames: [] }
+  var callTrace = { accounts: {}, calls: [], stackFrames: [], logs: [] }
   
   var traceStream = createVmTraceStream(provider, txHash)
   endOfStream(traceStream, function(err){
@@ -53,12 +53,36 @@ function generateCallTrace(txHash, provider, cb){
   }
 
   function analyzeStep(step){
-    if (step.opcode.name === 'CALL') {
-      var message = messageFromStep(step)
-      recordMessage(message)
-      var prevStack = callTrace.stackFrames.slice(-1)[0]
-      var stack = stackFromMessage(prevStack, message)
-      recordStack(stack)
+    switch(step.opcode.name) {
+      case 'CALL':
+        var message = messageFromStep(step)
+        recordMessage(message)
+        var prevStack = callTrace.stackFrames.slice(-1)[0]
+        var stack = stackFromMessage(prevStack, message)
+        recordStack(stack)
+        return
+      // TODO: CALLCODE, DELEGATECALL
+
+      case 'LOG0':
+      case 'LOG1':
+      case 'LOG2':
+      case 'LOG3':
+      case 'LOG4':
+        var numTopics = step.opcode.in - 2
+        var memOffset = ethUtil.bufferToInt(step.stack.pop())
+        var memLength = ethUtil.bufferToInt(step.stack.pop())
+        var topics = step.stack.slice(0, numTopics).map(function(topic){
+          return ethUtil.bufferToHex(ethUtil.setLengthLeft(topic, 32))
+        })
+
+        var log = {
+          stepIndex: callTrace.calls.length-1,
+          address: ethUtil.bufferToHex(step.address),
+          topics: topics,
+          // TODO: load data from memory
+          // data: null,
+        }
+        callTrace.logs.push(log)
     }
   }
 
