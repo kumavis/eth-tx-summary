@@ -5,8 +5,8 @@ const generateTxSummary = require('./index.js').generateTxSummary
 const createVmTraceStream = require('./index.js').createVmTraceStream
 const ZeroClient = require('web3-provider-engine/zero')
 
-// const RPC_ENDPOINT = 'https://mainnet.infura.io/'
-const RPC_ENDPOINT = 'http://localhost:8545'
+const RPC_ENDPOINT = 'https://mainnet.infura.io/'
+// const RPC_ENDPOINT = 'http://localhost:8545'
 // long tx run
 // const targetTx = '0x44ddb2dc10f0354ba87814a17e58765b7bf1a7d47baa2fac9cf5b72f462c66cd'
 // lots of setup + long tx run
