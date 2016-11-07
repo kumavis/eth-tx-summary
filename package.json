@@ -17,9 +17,9 @@
     "ethereumjs-block": "^1.2.2",
     "ethereumjs-tx": "^1.1.1",
     "ethereumjs-util": "^4.4.1",
-    "ethereumjs-vm": "github:ethereumjs/ethereumjs-vm#hooked",
+    "ethereumjs-vm": "^2.0.1",
     "treeify": "^1.0.1",
-    "web3-provider-engine": "^7.8.1"
+    "web3-provider-engine": "^8.1.7"
   },
   "directories": {
     "example": "examples"
