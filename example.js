@@ -14,13 +14,16 @@ const RPC_ENDPOINT = 'https://mainnet.infura.io/'
 // invalid jump
 // const targetTx = '0x026084424ed68542b611f8deffb2563bb527600abf63cee61d1cd8850f1b94fe'
 // DAO getting ripped
-// const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
+const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
 // local tx
-const targetTx = '0x6406ef867412a9dd8f79b5c350cf5ec981ba83d6de3e5fc42b0f57f4c8473fa9'
+// const targetTx = '0x6406ef867412a9dd8f79b5c350cf5ec981ba83d6de3e5fc42b0f57f4c8473fa9'
 // const targetTx = '0x58be5f96253365a73f8b74aee5e58b98dedbd9a0b57953eac1968c7bd98e0768'
 
 
 var provider = ZeroClient({ rpcUrl: RPC_ENDPOINT })
+_sendAsync = provider.sendAsync.bind(provider)
+// log network requests
+// provider.sendAsync = function(payload, cb){ _sendAsync(payload, function(err, res){ console.log(payload, '->', res); cb.apply(null, arguments) }) }
 
 var vmStream = createVmTraceStream(provider, targetTx)
 vmStream.on('data', data => console.log(data))

@@ -46,8 +46,9 @@ function createVmTraceStream(provider, txHash){
   // load block data and create vm
   function prepareVM(cb){
     // load tx
-    query.getTransaction(txHash, function(err, _txData){
+    query.getTransactionByHash(txHash, function(err, _txData){
       if (err) return cb(err)
+      if (!_txData) return cb(new Error('No transaction found...'))
       txData = _txData
       // load block
       // console.log('targetTx:',txData)
@@ -55,7 +56,7 @@ function createVmTraceStream(provider, txHash){
         type: 'tx',
         data: txData,
       })
-      query.getBlockByHash(txData.blockHash, function(err, _blockData){
+      query.getBlockByHash(txData.blockHash, true, function(err, _blockData){
         if (err) return cb(err)
         blockData = _blockData
         // materialize block and tx's
@@ -65,7 +66,8 @@ function createVmTraceStream(provider, txHash){
         // determine prepatory tx's
         prepatoryTxs = targetBlock.transactions.slice(0, txIndex)
         // create vm
-        var backingStateBlockNumber = parseInt(blockData.number, 16)-1
+        // target tx's block's parent
+        var backingStateBlockNumber = ethUtil.intToHex(parseInt(blockData.number, 16)-1)
         vm = createRpcVm(provider, backingStateBlockNumber, {
           enableHomestead: true,
         })
@@ -121,11 +123,8 @@ function createVmTraceStream(provider, txHash){
 
   // return the summary
   function parseResults(err, data){
-    // if (err) return cb(err)
     if (err) throw err
     var results = data.runTargetTx
-    // cb(null, results)
-    // console.log('results!')
     traceStream.push({
       type: 'results',
       data: results,
