@@ -13,7 +13,7 @@
     "clone": "^1.0.2",
     "concat-stream": "^1.5.1",
     "end-of-stream": "^1.1.0",
-    "eth-store": "^2.2.0",
+    "eth-query": "^2.0.1",
     "ethereumjs-block": "^1.2.2",
     "ethereumjs-tx": "^1.1.1",
     "ethereumjs-util": "^4.4.1",

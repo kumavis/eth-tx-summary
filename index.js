@@ -1,6 +1,6 @@
 const async = require('async')
 const clone = require('clone')
-const EthQuery = require('eth-store/query')
+const EthQuery = require('eth-query')
 const createRpcVm = require('ethereumjs-vm/lib/hooked').fromWeb3Provider
 const ethUtil = require('ethereumjs-util')
 const materializeBlocks = require('./materialize-blocks')
