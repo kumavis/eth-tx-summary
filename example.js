@@ -15,6 +15,9 @@ const RPC_ENDPOINT = 'https://mainnet.infura.io/'
 // const targetTx = '0x026084424ed68542b611f8deffb2563bb527600abf63cee61d1cd8850f1b94fe'
 // DAO getting ripped
 const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
+// MKR transfer
+// const targetTx = '0xb6c8ae5933c9b5a3e8a732ecb2530358695c843d807c47bacf2263043c3966eb'
+
 
 
 var provider = ZeroClient({ rpcUrl: RPC_ENDPOINT })
@@ -38,6 +41,8 @@ function logTraceGethStyle(vmStream){
         stepNumber++
         var step = data.data
         console.log(`[${stepNumber}], ${step.pc}, ${step.opcode.name}, gasCost, ${step.depth}`)
+        // console.log('stack:', step.stack)
+        // console.log('memory:', step.memory.join())
         return
       case 'results':
         var result = data.data
