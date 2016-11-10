@@ -17,7 +17,7 @@
     "ethereumjs-block": "^1.2.2",
     "ethereumjs-tx": "^1.1.1",
     "ethereumjs-util": "^4.4.1",
-    "ethereumjs-vm": "^2.0.1",
+    "ethereumjs-vm": "ethereumjs/ethereumjs-vm#1233e78390b141f0bb0dd64d1fbae81cad43904e",
     "treeify": "^1.0.1",
     "web3-provider-engine": "^8.1.7"
   },
