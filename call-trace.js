@@ -72,10 +72,10 @@ function generateCallTrace(txHash, provider, cb){
       sequence:    callTrace.calls.length,
       depth:       0,
       fromAddress: ethUtil.bufferToHex(txParams.from),
-      gasLimit:    ethUtil.bufferToHex(txParams.gasLimit),
+      gasLimit:    ethUtil.bufferToHex(txParams.gas || txParams.gasLimit),
       toAddress:   ethUtil.bufferToHex(txParams.to),
       value:       ethUtil.bufferToHex(txParams.value),
-      data:        ethUtil.bufferToHex(txParams.data),
+      data:        ethUtil.bufferToHex(txParams.data || txParams.input),
     }
     return message
   }
