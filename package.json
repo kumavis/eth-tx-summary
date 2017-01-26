@@ -1,6 +1,6 @@
 {
   "name": "eth-tx-summary",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "replay a historical tx using a web3 provider as a data source",
   "main": "index.js",
   "scripts": {
