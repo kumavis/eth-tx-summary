@@ -1,5 +1,4 @@
 const async = require('async')
-// const ZeroClient = require('web3-provider-engine/zero')
 const ethUtil = require('ethereumjs-util')
 const createVmTraceStream = require('./index.js').createVmTraceStream
 const endOfStream = require('end-of-stream')
