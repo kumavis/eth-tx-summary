@@ -3,7 +3,9 @@ const clone = require('clone')
 const EthQuery = require('eth-query')
 const createRpcVm = require('ethereumjs-vm/lib/hooked').fromWeb3Provider
 const ethUtil = require('ethereumjs-util')
-const materializeBlocks = require('./materialize-blocks')
+// using local copy pending https://github.com/ethereumjs/ethereumjs-block/pull/24
+const materializeBlock = require('./materialize-blocks')
+// const materializeBlock = require('ethereumjs-block/from-rpc')
 const Readable = require('stream').Readable
 const ConcatStream = require('concat-stream')
 
@@ -60,7 +62,7 @@ function createVmTraceStream(provider, txHash){
         if (err) return cb(err)
         blockData = _blockData
         // materialize block and tx's
-        targetBlock = materializeBlocks(blockData)
+        targetBlock = materializeBlock(blockData)
         var txIndex = parseInt(txData.transactionIndex, 16)
         targetTx = targetBlock.transactions[txIndex]
         // determine prepatory tx's
