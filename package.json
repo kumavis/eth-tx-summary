@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "async": "^2.1.2",
+    "async": "^2.2.0",
     "clone": "^2.0.0",
     "concat-stream": "^1.5.1",
     "end-of-stream": "^1.1.0",
