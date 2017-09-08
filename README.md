@@ -1,4 +1,6 @@
 ### eth-tx-summary
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/kumavis/eth-tx-summary.svg)](https://greenkeeper.io/)
 replay a historical tx using a web3 provider as a data source
 
 ```js
