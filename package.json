@@ -4,7 +4,7 @@
   "description": "replay a historical tx using a web3 provider as a data source",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "beefy example.js"
   },
   "author": "",
   "license": "ISC",
@@ -18,13 +18,17 @@
     "ethereumjs-tx": "^1.1.1",
     "ethereumjs-util": "^5.0.1",
     "ethereumjs-vm": "^2.0.2",
+    "through2": "^2.0.3",
     "treeify": "^1.0.1",
     "web3-provider-engine": "^8.1.7"
   },
   "directories": {
     "example": "examples"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "beefy": "^2.1.8",
+    "browserify": "^14.5.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kumavis/eth-tx-summary.git"

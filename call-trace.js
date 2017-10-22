@@ -1,101 +1,139 @@
 const async = require('async')
-const ethUtil = require('ethereumjs-util')
-const createVmTraceStream = require('./index.js').createVmTraceStream
+const { bufferToHex, bufferToInt, setLengthLeft } = require('ethereumjs-util')
 const endOfStream = require('end-of-stream')
+const through = require('through2').obj
 
-module.exports = generateCallTrace
+module.exports = createCallTraceTransform
 
 
-function generateCallTrace(txHash, provider, cb){
+function createCallTraceTransform() {
   
-  var callTrace = { accounts: {}, calls: [], stackFrames: [], logs: [] }
+  const callTrace = { accounts: {}, calls: [], stackFrames: [], logs: [] }
   
-  var traceStream = createVmTraceStream(provider, txHash)
-  endOfStream(traceStream, function(err){
-    if (err) return cb(err)
-    cb(null, callTrace)
+  const callTraceTransform = through((vmTraceDatum, enc, cb) => {
+    let result
+    try {
+      result = handleDatum(vmTraceDatum)
+    } catch (err) {
+      return cb(err)
+    }
+    if (result) callTraceTransform.push(result)
+    return cb()
   })
-  traceStream.on('data', handleDatum)
 
-  function handleDatum(traceDatum){
-    switch (traceDatum.type) {
+  return callTraceTransform
+
+  function handleDatum(vmTraceDatum){
+    switch (vmTraceDatum.type) {
       case 'tx':
-        return initalMessage(traceDatum.data)
+        return initalMessage(vmTraceDatum.data)
       case 'step':
-        return analyzeStep(traceDatum.data)
+        return analyzeStep(vmTraceDatum.data)
     }
   }
 
   function initalMessage(txParams) {
-    var message = messageFromTx(txParams)
+    const message = messageFromTx(txParams)
     recordMessage(message)
-    recordStack([0])
+    const stack = [0]
+    message.stack = stack
+    recordStack(stack)
+    // prepare datum
+    const callTraceDatum = {
+      type: 'message',
+      data: message,
+    }
+    return callTraceDatum
   }
 
   function analyzeStep(step){
     switch(step.opcode.name) {
       case 'CALL':
-        var message = messageFromStep(step)
-        recordMessage(message)
-        var prevStack = callTrace.stackFrames.slice(-1)[0]
-        var stack = stackFromMessage(prevStack, message)
-        recordStack(stack)
-        return
-      // TODO: CALLCODE, DELEGATECALL
+        return analyzeCall(step)
+      
+      // TODO: CALLCODE, DELEGATECALL, STATICCALL
 
       case 'LOG0':
       case 'LOG1':
       case 'LOG2':
       case 'LOG3':
       case 'LOG4':
-        var numTopics = step.opcode.in - 2
-        var memOffset = ethUtil.bufferToInt(step.stack.pop())
-        var memLength = ethUtil.bufferToInt(step.stack.pop())
-        var topics = step.stack.slice(0, numTopics).map(function(topic){
-          return ethUtil.bufferToHex(ethUtil.setLengthLeft(topic, 32))
-        })
+        return analyzeLog(step)
 
-        var log = {
-          stepIndex: callTrace.calls.length-1,
-          address: ethUtil.bufferToHex(step.address),
-          topics: topics,
-          // TODO: load data from memory
-          // data: null,
-        }
-        callTrace.logs.push(log)
+      default:
+        return console.log(`${step.index} ${step.opcode.name}`)
     }
   }
 
+  function analyzeCall(step) {
+    const message = messageFromStep(step)
+    recordMessage(message)
+    const prevStack = callTrace.stackFrames.slice(-1)[0]
+    const stack = stackFromMessage(prevStack, message)
+    message.stack = stack
+    recordStack(stack)
+    // update calls and call stack
+    callTrace.stackFrames.push(stack)
+    callTrace.calls.push(message)
+    // prepare datum
+    const callTraceDatum = {
+      type: 'message',
+      data: message,
+    }
+    return callTraceDatum
+  }
+
+  function analyzeLog(step) {
+    const numTopics = step.opcode.in - 2
+    const memOffset = bufferToInt(step.stack.pop())
+    const memLength = bufferToInt(step.stack.pop())
+    const topics = step.stack.slice(0, numTopics).map(function(topic){
+      return bufferToHex(setLengthLeft(topic, 32))
+    })
+    const log = {
+      callIndex: callTrace.calls.length - 1,
+      address: bufferToHex(step.address),
+      topics: topics,
+      // TODO: load data from memory
+      // data: null,
+    }
+    const callTraceDatum = {
+      type: 'log',
+      data: log,
+    }
+    return callTraceDatum
+  }
+
   function messageFromTx(txParams){
-    var message = {
-      sequence:    callTrace.calls.length,
+    const message = {
+      sequence:    0,
       depth:       0,
-      fromAddress: ethUtil.bufferToHex(txParams.from),
-      gasLimit:    ethUtil.bufferToHex(txParams.gas || txParams.gasLimit),
-      toAddress:   ethUtil.bufferToHex(txParams.to),
-      value:       ethUtil.bufferToHex(txParams.value),
-      data:        ethUtil.bufferToHex(txParams.data || txParams.input),
+      fromAddress: bufferToHex(txParams.from),
+      gasLimit:    bufferToHex(txParams.gas || txParams.gasLimit),
+      toAddress:   bufferToHex(txParams.to),
+      value:       bufferToHex(txParams.value),
+      data:        bufferToHex(txParams.data || txParams.input),
     }
     return message
   }
 
   function messageFromStep(step){
-    var depth = step.depth + 1
+    const depth = step.depth + 1
     // from the stack (order is important)
-    var gasLimit  = ethUtil.bufferToHex(step.stack.pop())
-    var toAddress = ethUtil.bufferToHex(ethUtil.setLengthLeft(step.stack.pop(), 20))
-    var value     = ethUtil.bufferToHex(step.stack.pop())
-    var inOffset  = ethUtil.bufferToInt(step.stack.pop())
-    var inLength  = ethUtil.bufferToInt(step.stack.pop())
-    // var outOffset = ethUtil.bufferToInt(step.stack.pop())
-    // var outLength = ethUtil.bufferToInt(step.stack.pop())
+    const gasLimit  = bufferToHex(step.stack.pop())
+    const toAddress = bufferToHex(setLengthLeft(step.stack.pop(), 20))
+    const value     = bufferToHex(step.stack.pop())
+    const inOffset  = bufferToInt(step.stack.pop())
+    const inLength  = bufferToInt(step.stack.pop())
+    // const outOffset = bufferToInt(step.stack.pop())
+    // const outLength = bufferToInt(step.stack.pop())
 
-    var data = ethUtil.bufferToHex(memLoad(step.memory, inOffset, inLength))
+    const data = bufferToHex(memLoad(step.memory, inOffset, inLength))
     
-    var callParams = {
+    const callParams = {      
       sequence:    callTrace.calls.length,
       depth:       depth,
-      fromAddress: ethUtil.bufferToHex(step.address),
+      fromAddress: bufferToHex(step.address),
       gasLimit:    gasLimit,
       toAddress:   toAddress,
       value:       value,
@@ -105,15 +143,15 @@ function generateCallTrace(txHash, provider, cb){
   }
 
   function stackFromMessage(prevStack, msgParams){
-    var topOfStackCallIndex = prevStack.slice(-1)[0]
-    var topOfStack = callTrace.calls[topOfStackCallIndex]
-    var newStack = prevStack.slice()
-    var prevDepth = topOfStack.depth
-    var itemsToRemove = 1 + prevDepth - msgParams.depth
+    const topOfStackCallIndex = prevStack.slice(-1)[0]
+    const topOfStack = callTrace.calls[topOfStackCallIndex]
+    const newStack = prevStack.slice()
+    const prevDepth = topOfStack.depth
+    const itemsToRemove = 1 + prevDepth - msgParams.depth
     // remove old calls
     newStack.splice(newStack.length-itemsToRemove)
     // add new call
-    var messageIndex = callTrace.calls.indexOf(msgParams)
+    const messageIndex = callTrace.calls.indexOf(msgParams)
     newStack.push(messageIndex)
     return newStack
   }
@@ -122,19 +160,8 @@ function generateCallTrace(txHash, provider, cb){
     callTrace.stackFrames.push(stack)
   }
 
-  function recordMessage(msgParams){
-    recordAccount(msgParams.fromAddress)
-    recordAccount(msgParams.toAddress)
-    recordCall(msgParams)
-  }
-
-  function recordAccount(address){
-    if (!address) return
-    callTrace.accounts[address] = {address}
-  }
-
-  function recordCall(callParams){
-    callTrace.calls.push(callParams)
+  function recordMessage(message){
+    callTrace.calls.push(message)
   }
 
 }
@@ -142,9 +169,9 @@ function generateCallTrace(txHash, provider, cb){
 
 // from ethereumjs-vm
 function memLoad(memory, offset, length) {
-  var loaded = memory.slice(offset, offset + length)
+  const loaded = memory.slice(offset, offset + length)
   // fill the remaining lenth with zeros
-  for (var i = loaded.length; i < length; i++) {
+  for (const i = loaded.length; i < length; i++) {
     loaded.push(0)
   }
   return new Buffer(loaded)

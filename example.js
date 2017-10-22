@@ -3,7 +3,8 @@ const xhr = process.browser ? require('xhr') : require('request')
 const onStreamEnd = require('end-of-stream')
 const generateTxSummary = require('./index.js').generateTxSummary
 const createVmTraceStream = require('./index.js').createVmTraceStream
-const ZeroClient = require('web3-provider-engine/zero')
+const createCallTraceTransform = require('./call-trace')
+const createZeroClient = require('web3-provider-engine/zero')
 
 const RPC_ENDPOINT = 'https://mainnet.infura.io/'
 // const RPC_ENDPOINT = 'http://localhost:8545'
@@ -20,34 +21,40 @@ const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c47994
 
 
 
-var provider = ZeroClient({ rpcUrl: RPC_ENDPOINT })
+const provider = createZeroClient({ rpcUrl: RPC_ENDPOINT })
 _sendAsync = provider.sendAsync.bind(provider)
 // log network requests
 // provider.sendAsync = function(payload, cb){ _sendAsync(payload, function(err, res){ console.log(payload, '->', res); cb.apply(null, arguments) }) }
 
-var vmStream = createVmTraceStream(provider, targetTx)
-vmStream.on('error', err => {throw err})
-onStreamEnd(vmStream, ()=> provider.stop())
+const vmStream = createVmTraceStream(provider, targetTx)
+const callTraceTransform = createCallTraceTransform()
+vmStream.on('error', console.error)
+onStreamEnd(vmStream, () => provider.stop())
 
-//vmStream.on('data', data => console.log(data))
-logTraceGethStyle(vmStream)
+vmStream.pipe(callTraceTransform).on('data', console.log)
+vmStream.on('data', (vmDatum) => console.log(vmDatum.type))
 
 
-function logTraceGethStyle(vmStream){
-  var stepNumber = 0
-  vmStream.on('data', data => {
-    switch (data.type) {
-      case 'step':
-        stepNumber++
-        var step = data.data
-        console.log(`[${stepNumber}], ${step.pc}, ${step.opcode.name}, gasCost, ${step.depth}`)
-        // console.log('stack:', step.stack)
-        // console.log('memory:', step.memory.join())
-        return
-      case 'results':
-        var result = data.data
-        console.log(result)
-        return
-    }
-  })
-}
+
+// //vmStream.on('data', data => console.log(data))
+// logTraceGethStyle(vmStream)
+
+
+// function logTraceGethStyle(vmStream){
+//   const stepNumber = 0
+//   vmStream.on('data', data => {
+//     switch (data.type) {
+//       case 'step':
+//         stepNumber++
+//         const step = data.data
+//         console.log(`[${stepNumber}], ${step.pc}, ${step.opcode.name}, gasCost, ${step.depth}`)
+//         // console.log('stack:', step.stack)
+//         // console.log('memory:', step.memory.join())
+//         return
+//       case 'results':
+//         const result = data.data
+//         console.log(result)
+//         return
+//     }
+//   })
+// }

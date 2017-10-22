@@ -16,26 +16,26 @@ module.exports = {
 
 
 function generateTxSummary(provider, txHash, cb) {
-  var traceStream = createVmTraceStream(provider, txHash)
+  const traceStream = createVmTraceStream(provider, txHash)
   traceStream.on('error', (err) => cb(err) )
-  var concatStream = ConcatStream({ encoding: 'object' }, function(results){
+  const concatStream = ConcatStream({ encoding: 'object' }, function(results){
     cb(null, results)
   })
   traceStream.pipe(concatStream)
 }
 
 function createVmTraceStream(provider, txHash){
-  var traceStream = new Readable({ objectMode: true, read: noop })
-  var query = new EthQuery(provider)
+  const traceStream = new Readable({ objectMode: true, read: noop })
+  const query = new EthQuery(provider)
 
   // raw data
-  var txData = null
-  var blockData = null
+  let txData = null
+  let blockData = null
   // eth objs
-  var prepatoryTxs = null
-  var targetTx = null
-  var targetBlock = null
-  var vm = null
+  let prepatoryTxs = null
+  let targetTx = null
+  let targetBlock = null
+  let vm = null
 
   async.series({
     prepareVM,
@@ -63,16 +63,17 @@ function createVmTraceStream(provider, txHash){
         blockData = _blockData
         // materialize block and tx's
         targetBlock = materializeBlock(blockData)
-        var txIndex = parseInt(txData.transactionIndex, 16)
+        const txIndex = parseInt(txData.transactionIndex, 16)
         targetTx = targetBlock.transactions[txIndex]
         // determine prepatory tx's
         prepatoryTxs = targetBlock.transactions.slice(0, txIndex)
         // create vm
         // target tx's block's parent
-        var backingStateBlockNumber = ethUtil.intToHex(parseInt(blockData.number, 16)-1)
+        const backingStateBlockNumber = ethUtil.intToHex(parseInt(blockData.number, 16)-1)
         vm = createRpcVm(provider, backingStateBlockNumber, {
           enableHomestead: true,
         })
+        vm.on('error', console.error)
         // complete
         cb()
       })
@@ -94,10 +95,11 @@ function createVmTraceStream(provider, txHash){
 
   // run the actual tx to analyze
   function runTargetTx(cb){
-    var codePath = []
-    // console.log('targetTx!')
+    const codePath = []
+    let stepIndex = 0
     vm.on('step', function(step){
-      var cleanStep = clone({
+      const cleanStep = clone({
+        index: stepIndex,
         opcode: step.opcode,
         stack: step.stack,
         memory: step.memory,
@@ -105,7 +107,7 @@ function createVmTraceStream(provider, txHash){
         pc: step.pc,
         depth: step.depth,
       })
-      // console.log('op!')
+      stepIndex++
       traceStream.push({
         type: 'step',
         data: cleanStep
@@ -126,7 +128,7 @@ function createVmTraceStream(provider, txHash){
   // return the summary
   function parseResults(err, data){
     if (err) throw err
-    var results = data.runTargetTx
+    const results = data.runTargetTx
     traceStream.push({
       type: 'results',
       data: results,
