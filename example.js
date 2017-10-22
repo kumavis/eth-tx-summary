@@ -32,7 +32,7 @@ vmStream.on('error', console.error)
 onStreamEnd(vmStream, () => provider.stop())
 
 vmStream.pipe(callTraceTransform).on('data', console.log)
-vmStream.on('data', (vmDatum) => console.log(vmDatum.type))
+// vmStream.on('data', (vmDatum) => console.log(vmDatum.type))
 
 
 
