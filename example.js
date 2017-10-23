@@ -6,7 +6,7 @@ const createVmTraceStream = require('./index.js').createVmTraceStream
 const createCallTraceTransform = require('./call-trace')
 const createZeroClient = require('web3-provider-engine/zero')
 
-const RPC_ENDPOINT = 'https://mainnet.infura.io/'
+const RPC_ENDPOINT = 'https://mainnet.infura.io/metamask'
 // const RPC_ENDPOINT = 'http://localhost:8545'
 // long tx run
 // const targetTx = '0x44ddb2dc10f0354ba87814a17e58765b7bf1a7d47baa2fac9cf5b72f462c66cd'
@@ -21,15 +21,22 @@ const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c47994
 
 
 
-const provider = createZeroClient({ rpcUrl: RPC_ENDPOINT })
-_sendAsync = provider.sendAsync.bind(provider)
+const provider = createZeroClient({
+  rpcUrl: RPC_ENDPOINT,
+  getAccounts: (cb) => cb(null, []),
+})
 // log network requests
+// _sendAsync = provider.sendAsync.bind(provider)
 // provider.sendAsync = function(payload, cb){ _sendAsync(payload, function(err, res){ console.log(payload, '->', res); cb.apply(null, arguments) }) }
 
 const vmStream = createVmTraceStream(provider, targetTx)
 const callTraceTransform = createCallTraceTransform()
 vmStream.on('error', console.error)
-onStreamEnd(vmStream, () => provider.stop())
+onStreamEnd(vmStream, (err) => {
+  if (err) console.error(err)
+  console.log('vm stream ended')
+  provider.stop()
+})
 
 vmStream.pipe(callTraceTransform).on('data', console.log)
 // vmStream.on('data', (vmDatum) => console.log(vmDatum.type))

@@ -7,9 +7,9 @@ module.exports = createCallTraceTransform
 
 
 function createCallTraceTransform() {
-  
+
   const callTrace = { accounts: {}, calls: [], stackFrames: [], logs: [] }
-  
+
   const callTraceTransform = through((vmTraceDatum, enc, cb) => {
     let result
     try {
@@ -49,9 +49,12 @@ function createCallTraceTransform() {
   function analyzeStep(step){
     switch(step.opcode.name) {
       case 'CALL':
-        return analyzeCall(step)
-      
-      // TODO: CALLCODE, DELEGATECALL, STATICCALL
+      case 'CALLCODE':
+        return analyzeCall(step, true)
+
+      case 'DELEGATECALL':
+      case 'STATICCALL':
+        return analyzeCall(step, false)
 
       case 'LOG0':
       case 'LOG1':
@@ -61,12 +64,12 @@ function createCallTraceTransform() {
         return analyzeLog(step)
 
       default:
-        return console.log(`${step.index} ${step.opcode.name}`)
+        // return console.log(`${step.index} ${step.opcode.name}`)
     }
   }
 
-  function analyzeCall(step) {
-    const message = messageFromStep(step)
+  function analyzeCall(step, includeValue) {
+    const message = messageFromStep(step, includeValue)
     recordMessage(message)
     const prevStack = callTrace.stackFrames.slice(-1)[0]
     const stack = stackFromMessage(prevStack, message)
@@ -117,20 +120,21 @@ function createCallTraceTransform() {
     return message
   }
 
-  function messageFromStep(step){
+  function messageFromStep(step, includeValue){
     const depth = step.depth + 1
     // from the stack (order is important)
     const gasLimit  = bufferToHex(step.stack.pop())
     const toAddress = bufferToHex(setLengthLeft(step.stack.pop(), 20))
-    const value     = bufferToHex(step.stack.pop())
+    const value     = includeValue ? bufferToHex(step.stack.pop()) : '0x0'
     const inOffset  = bufferToInt(step.stack.pop())
     const inLength  = bufferToInt(step.stack.pop())
     // const outOffset = bufferToInt(step.stack.pop())
     // const outLength = bufferToInt(step.stack.pop())
 
     const data = bufferToHex(memLoad(step.memory, inOffset, inLength))
-    
-    const callParams = {      
+
+    const callParams = {
+      opcode:      step.opcode.name,
       sequence:    callTrace.calls.length,
       depth:       depth,
       fromAddress: bufferToHex(step.address),
