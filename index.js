@@ -69,8 +69,9 @@ function createVmTraceStream(provider, txHash){
         prepatoryTxs = targetBlock.transactions.slice(0, txIndex)
         // create vm
         // target tx's block's parent
-        const backingStateBlockNumber = ethUtil.intToHex(parseInt(blockData.number, 16)-1)
-        vm = createRpcVm(provider, backingStateBlockNumber, {
+        const backingStateBlockNumber = parseInt(blockData.number, 16) - 1
+        const backingStateBlockNumberHex = `0x${backingStateBlockNumber.toString(16)}`
+        vm = createRpcVm(provider, backingStateBlockNumberHex, {
           enableHomestead: true,
         })
         vm.on('error', console.error)
@@ -79,7 +80,7 @@ function createVmTraceStream(provider, txHash){
       })
     })
   }
-  
+
   // we need to run all the txs to setup the state
   function runPrepatoryTxs(cb){
     async.eachSeries(prepatoryTxs, function(prepTx, cb){
