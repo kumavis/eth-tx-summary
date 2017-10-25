@@ -1,6 +1,7 @@
 const xhr = process.browser ? require('xhr') : require('request')
 const onStreamEnd = require('end-of-stream')
 const createZeroClient = require('web3-provider-engine/zero')
+const jsonSerialize = require('json-stable-stringify')
 const createVmTraceStream = require('./index.js').createVmTraceStream
 const createCallTraceTransform = require('./call-trace')
 const traceTransaction = require('./trace-transaction')
@@ -56,6 +57,6 @@ function tryTrace(){
   traceTransaction(provider, targetTx, (err, result) => {
     provider.stop()
     if (err) return console.error(err)
-    console.log(JSON.stringify(result, null, 2))
+    console.log(jsonSerialize(result, { space: 2 }))
   })
 }

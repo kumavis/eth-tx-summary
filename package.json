@@ -28,6 +28,7 @@
   "devDependencies": {
     "beefy": "^2.1.8",
     "browserify": "^14.5.0",
+    "json-stable-stringify": "^1.0.1",
     "request": "^2.83.0",
     "xhr": "^2.4.0"
   },

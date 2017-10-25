@@ -25,6 +25,7 @@ function parseVmOutput(vmOutput) {
   const txResults = vmOutput.find(datum => datum.type === 'results').data
 
   return {
+    failed: !txResults.vm.exception,
     gas: txResults.gasUsed.toNumber(),
     returnValue: txResults.vm.return.toString('hex'),
     structLogs: traceSteps,
@@ -33,14 +34,15 @@ function parseVmOutput(vmOutput) {
 
 function formatStep(step) {
   const opInfo = step.opcode
-  
+  const cleanMemory = step.memory.filter(entry => entry !== 'undefined')
+
   return {
-    depth: step.depth,
-    error: '',
+    depth: step.depth + 1,
+    error: null,
     gas: step.gasLeft.toNumber(),
     // gasCost: does not include dynamic component
     gasCost: opInfo.fee,
-    memory: formatMemory(step.memory),
+    memory: cleanMemory.length ? formatMemory(cleanMemory) : null,
     op: opInfo.name,
     pc: step.pc,
     stack: formatMemory(step.stack),
@@ -70,10 +72,10 @@ function formatMemory(memory) {
 // }]
 
 // { type: 'step',
-//   data: 
+//   data:
 //    { index: 101,
 //      opcode: { name: 'CALL', fee: 40, in: 7, out: 1, dynamic: true },
-//      stack: 
+//      stack:
 //       [ <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 62 5e 84 7d>,
 //         <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03 17>,
 //         <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>,
@@ -88,7 +90,7 @@ function formatMemory(memory) {
 //         <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 06 3b 9a 45 87 d6 07 85 49>,
 //         <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 96 98 37 49 89 44 ae 1d c0 dc ac 2d 0c 65 63 4c 88 72 9b 2d>,
 //         <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00> ],
-//      memory: 
+//      memory:
 //       [ <64 empty items>,
 //         0,
 //         0,
@@ -127,7 +129,7 @@ function formatMemory(memory) {
 //      depth: 0 } }
 
 // { type: 'tx',
-//   data: 
+//   data:
 //    { blockHash: '0x67bcfb9255041ef50aeeeadb7ebca5de18e9ca06570202ea835aa51f0aec8e71',
 //      blockNumber: '0x1a3cad',
 //      from: '0xf35e2cc8e6523d683ed44870f5b7cc785051a77d',
@@ -144,10 +146,10 @@ function formatMemory(memory) {
 //      s: '0x6f6148d08b6b1a8c4bbd82cdebc31f01c6f8e659b2df516de579a5ea27a922be' } }
 
 // { type: 'results',
-//   data: 
+//   data:
 //    { gasUsed: <BN: 310fc>,
 //      createdAddress: undefined,
-//      vm: 
+//      vm:
 //       { runState: [Object],
 //         suicides: {},
 //         suicideTo: undefined,
@@ -158,6 +160,6 @@ function formatMemory(memory) {
 //         gas: <BN: ad1b4>,
 //         return: <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01>,
 //         gasUsed: <BN: 41a34> },
-//      bloom: 
+//      bloom:
 //       { bitvector: <Buffer 00 00 00 00 00 00 80 00 00 00 00 02 00 00 00 00 80 00 01 00 00 00 00 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 00 00 00 08 01 00 00 00 00 00 ... > },
 //      amountSpent: <BN: e475e4be8e000> } }
