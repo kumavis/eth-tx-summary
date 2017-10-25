@@ -175,7 +175,7 @@ function createCallTraceTransform() {
 function memLoad(memory, offset, length) {
   const loaded = memory.slice(offset, offset + length)
   // fill the remaining lenth with zeros
-  for (const i = loaded.length; i < length; i++) {
+  for (let i = loaded.length; i < length; i++) {
     loaded.push(0)
   }
   return new Buffer(loaded)
