@@ -27,7 +27,9 @@
   },
   "devDependencies": {
     "beefy": "^2.1.8",
-    "browserify": "^14.5.0"
+    "browserify": "^14.5.0",
+    "request": "^2.83.0",
+    "xhr": "^2.4.0"
   },
   "repository": {
     "type": "git",
