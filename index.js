@@ -101,12 +101,15 @@ function createVmTraceStream(provider, txHash){
     vm.on('step', function(step){
       const cleanStep = clone({
         index: stepIndex,
+        pc: step.pc,
+        gasLeft: step.gasLeft,
         opcode: step.opcode,
         stack: step.stack,
-        memory: step.memory,
-        address: step.address,
-        pc: step.pc,
         depth: step.depth,
+        address: step.address,
+        account: step.account,
+        cache: step.cache,
+        memory: step.memory,
       })
       stepIndex++
       traceStream.push({

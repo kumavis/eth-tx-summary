@@ -1,12 +1,11 @@
-const async = require('async')
 const xhr = process.browser ? require('xhr') : require('request')
 const onStreamEnd = require('end-of-stream')
-const generateTxSummary = require('./index.js').generateTxSummary
+const createZeroClient = require('web3-provider-engine/zero')
 const createVmTraceStream = require('./index.js').createVmTraceStream
 const createCallTraceTransform = require('./call-trace')
-const createZeroClient = require('web3-provider-engine/zero')
+const traceTransaction = require('./trace-transaction')
 
-const RPC_ENDPOINT = 'https://mainnet.infura.io/metamask'
+const RPC_ENDPOINT = 'https://mainnet.infura.io/'
 // const RPC_ENDPOINT = 'http://localhost:8545'
 // long tx run
 // const targetTx = '0x44ddb2dc10f0354ba87814a17e58765b7bf1a7d47baa2fac9cf5b72f462c66cd'
@@ -15,10 +14,9 @@ const RPC_ENDPOINT = 'https://mainnet.infura.io/metamask'
 // invalid jump
 // const targetTx = '0x026084424ed68542b611f8deffb2563bb527600abf63cee61d1cd8850f1b94fe'
 // DAO getting ripped
-const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
+// const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
 // MKR transfer
-// const targetTx = '0xb6c8ae5933c9b5a3e8a732ecb2530358695c843d807c47bacf2263043c3966eb'
-
+const targetTx = '0xb6c8ae5933c9b5a3e8a732ecb2530358695c843d807c47bacf2263043c3966eb'
 
 
 const provider = createZeroClient({
@@ -29,39 +27,34 @@ const provider = createZeroClient({
 // _sendAsync = provider.sendAsync.bind(provider)
 // provider.sendAsync = function(payload, cb){ _sendAsync(payload, function(err, res){ console.log(payload, '->', res); cb.apply(null, arguments) }) }
 
-const vmStream = createVmTraceStream(provider, targetTx)
-const callTraceTransform = createCallTraceTransform()
-vmStream.on('error', console.error)
-onStreamEnd(vmStream, (err) => {
-  if (err) console.error(err)
-  console.log('vm stream ended')
-  provider.stop()
-})
+// tryVmStream()
+// tryCallTraceStream()
+tryTrace()
 
-vmStream.pipe(callTraceTransform).on('data', console.log)
-// vmStream.on('data', (vmDatum) => console.log(vmDatum.type))
+function tryVmStream(){
+  const vmStream = createVmTraceStream(provider, targetTx)
+  vmStream.on('data', console.log)
+  onStreamEnd(vmStream, (err) => {
+    if (err) console.error(err)
+    provider.stop()
+  })
+}
 
+function tryCallTraceStream(){
+  const vmStream = createVmTraceStream(provider, targetTx)
+  const callTraceTransform = createCallTraceTransform()
+  vmStream.pipe(callTraceTransform)
+  callTraceTransform.on('data', console.log)
+  onStreamEnd(callTraceTransform, (err) => {
+    if (err) console.error(err)
+    provider.stop()
+  })
+}
 
-
-// //vmStream.on('data', data => console.log(data))
-// logTraceGethStyle(vmStream)
-
-
-// function logTraceGethStyle(vmStream){
-//   const stepNumber = 0
-//   vmStream.on('data', data => {
-//     switch (data.type) {
-//       case 'step':
-//         stepNumber++
-//         const step = data.data
-//         console.log(`[${stepNumber}], ${step.pc}, ${step.opcode.name}, gasCost, ${step.depth}`)
-//         // console.log('stack:', step.stack)
-//         // console.log('memory:', step.memory.join())
-//         return
-//       case 'results':
-//         const result = data.data
-//         console.log(result)
-//         return
-//     }
-//   })
-// }
+function tryTrace(){
+  traceTransaction(provider, targetTx, (err, result) => {
+    provider.stop()
+    if (err) return console.error(err)
+    console.log(JSON.stringify(result, null, 2))
+  })
+}
