@@ -19,20 +19,27 @@ function traceTx(provider, txHash, cb) {
 
 function parseVmOutput(vmOutput) {
   const txParams = vmOutput.find(datum => datum.type === 'tx').data
+  const txResults = vmOutput.find(datum => datum.type === 'results').data
   const traceSteps = vmOutput
     .filter(datum => datum.type === 'step')
-    .map((datum) => formatStep(datum.data))
-  const txResults = vmOutput.find(datum => datum.type === 'results').data
+    .map(datum => datum.data)
+  const structLogs = traceSteps
+    .map((step, index) => {
+      const nextStep = traceSteps[index+1]
+      const nextGasBn = nextStep ? nextStep.gasLeft : txResults.vm.gas
+      const gasUsedBn = step.gasLeft.sub(nextGasBn)
+      return formatStep(step, gasUsedBn)
+    })
 
   return {
     failed: !txResults.vm.exception,
     gas: txResults.gasUsed.toNumber(),
     returnValue: txResults.vm.return.toString('hex'),
-    structLogs: traceSteps,
+    structLogs,
   }
 }
 
-function formatStep(step) {
+function formatStep(step, gasUsedBn) {
   const opInfo = step.opcode
   const cleanMemory = step.memory.filter(entry => entry !== 'undefined')
 
@@ -41,7 +48,7 @@ function formatStep(step) {
     error: null,
     gas: step.gasLeft.toNumber(),
     // gasCost: does not include dynamic component
-    gasCost: opInfo.fee,
+    gasCost: gasUsedBn.toNumber(),
     memory: cleanMemory.length ? formatMemory(cleanMemory) : null,
     op: opInfo.name,
     pc: step.pc,
