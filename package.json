@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.1.2",
+    "bn.js": "^4.11.8",
     "clone": "^2.0.0",
     "concat-stream": "^1.5.1",
     "end-of-stream": "^1.1.0",
@@ -17,7 +18,7 @@
     "ethereumjs-block": "^1.4.1",
     "ethereumjs-tx": "^1.1.1",
     "ethereumjs-util": "^5.0.1",
-    "ethereumjs-vm": "^2.0.2",
+    "ethereumjs-vm": "^2.3.3",
     "through2": "^2.0.3",
     "treeify": "^1.0.1",
     "web3-provider-engine": "^13.3.2"
