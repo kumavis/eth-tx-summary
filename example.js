@@ -17,9 +17,9 @@ const RPC_ENDPOINT = 'https://mainnet.infura.io/'
 // DAO getting ripped
 // const targetTx = '0xc0b6d5916bff007ef3a349b9191300e210a5fbb1db7f1cece50184c479947bc3'
 // MKR transfer
-// const targetTx = '0xb6c8ae5933c9b5a3e8a732ecb2530358695c843d807c47bacf2263043c3966eb'
+const targetTx = '0xb6c8ae5933c9b5a3e8a732ecb2530358695c843d807c47bacf2263043c3966eb'
 // multisig confirm
-const targetTx = '0x0b68379d9cbac4e345bb4e222760f73b905cdfe3887c56df95c89b65e88e46c6'
+// const targetTx = '0x0b68379d9cbac4e345bb4e222760f73b905cdfe3887c56df95c89b65e88e46c6'
 
 const provider = createZeroClient({
   rpcUrl: RPC_ENDPOINT,
@@ -29,9 +29,9 @@ const provider = createZeroClient({
 // _sendAsync = provider.sendAsync.bind(provider)
 // provider.sendAsync = function(payload, cb){ _sendAsync(payload, function(err, res){ console.log(payload, '->', res); cb.apply(null, arguments) }) }
 
-// tryVmStream()
+tryVmStream()
 // tryCallTraceStream()
-tryTrace()
+// tryTrace()
 
 function tryVmStream(){
   const vmStream = createVmTraceStream(provider, targetTx)
