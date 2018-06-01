@@ -1,7 +1,7 @@
 const async = require('async')
 const ethUtil = require('ethereumjs-util')
 const ConcatStream = require('concat-stream')
-const lookupOpInfo = require('ethereumjs-vm/lib/opcodes')
+const lookupOpInfo = require('./opCodes')
 const createVmTraceStream = require('./index').createVmTraceStream
 
 module.exports = traceTx
